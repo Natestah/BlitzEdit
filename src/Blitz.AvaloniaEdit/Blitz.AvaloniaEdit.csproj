@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <OutputType>WinExe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
@@ -26,7 +25,7 @@
 
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\..\git\Blitz.AvaloniaEdit\Blitz.AvaloniaEdit.csproj" />
-      <ProjectReference Include="..\Blitz.AvaloniaEdit\Blitz.AvaloniaEdit.csproj" />
+      <ProjectReference Include="..\..\git_public\AvaloniaEdit\src\AvaloniaEdit.TextMate\AvaloniaEdit.TextMate.csproj" />
+      <ProjectReference Include="..\..\git_public\AvaloniaEdit\src\AvaloniaEdit\AvaloniaEdit.csproj" />
     </ItemGroup>
 </Project>

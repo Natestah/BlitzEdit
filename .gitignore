@@ -1,3 +1,6 @@
 
 /src/BlitzEdit/bin
 /src/BlitzEdit/obj
+/src/Blitz.AvaloniaEdit/obj
+/src/Blitz.AvaloniaEdit/bin
+/src/BlitzEdit/.idea
