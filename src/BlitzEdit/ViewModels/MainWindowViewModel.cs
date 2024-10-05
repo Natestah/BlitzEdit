@@ -1,8 +1,8 @@
-﻿namespace BlitzEdit.ViewModels;
+﻿using Blitz.AvaloniaEdit.ViewModels;
+
+namespace BlitzEdit.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-#pragma warning disable CA1822 // Mark members as static
-    public string Greeting => "Welcome to Avalonia!";
-#pragma warning restore CA1822 // Mark members as static
+    public BlitzEditorViewModel EditorViewModel { get; set; } = new();
 }

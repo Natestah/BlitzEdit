@@ -1,8 +1,20 @@
-﻿namespace Blitz.AvaloniaEdit.ViewModels;
+﻿using System;
+using System.Linq;
+using System.Collections.ObjectModel;
+using AvaloniaEdit.TextMate;
+using Avalonia.Media;
+using Blitz.AvaloniaEdit.Models;
+using TextMateSharp.Grammars;
+using ReactiveUI;
+
+
+
+namespace Blitz.AvaloniaEdit.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-#pragma warning disable CA1822 // Mark members as static
-    public string Greeting => "Welcome to Avalonia!";
-#pragma warning restore CA1822 // Mark members as static
+
+    public BlitzEditorViewModel EditorViewModel { get; }= new BlitzEditorViewModel();
+
+  
 }

@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:viewModels="clr-namespace:Blitz.AvaloniaEdit.ViewModels"
+             x:Class="Blitz.AvaloniaEdit.Views.BlitzFileView"
+             x:DataType="viewModels:BlitzEditorViewModel"
+             xmlns:AvalonEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+             >
+    <AvalonEdit:TextEditor Name="AvaloniaTextEditor"
+                           FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                           HorizontalScrollBarVisibility="Auto"
+                           VerticalScrollBarVisibility="Visible"
+                           FontWeight="Light"
+                           FontSize="14" />
+    
+    
+</UserControl>

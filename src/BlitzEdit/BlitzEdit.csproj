@@ -26,7 +26,7 @@
 
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\..\git\Blitz.AvaloniaEdit\Blitz.AvaloniaEdit.csproj" />
       <ProjectReference Include="..\Blitz.AvaloniaEdit\Blitz.AvaloniaEdit.csproj" />
     </ItemGroup>
+
 </Project>

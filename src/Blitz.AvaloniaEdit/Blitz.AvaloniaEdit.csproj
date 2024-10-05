@@ -8,24 +8,33 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Folder Include="Models\"/>
         <AvaloniaResource Include="Assets\**"/>
     </ItemGroup>
 
 
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="11.0.6"/>
+        <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.1.0" />
         <PackageReference Include="Avalonia.Desktop" Version="11.0.6"/>
         <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.6"/>
         <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.6"/>
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.6"/>
         <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.6"/>
+        <PackageReference Include="AvaloniaEdit.TextMate" Version="11.1.0" />
     </ItemGroup>
 
 
     <ItemGroup>
-      <ProjectReference Include="..\..\git_public\AvaloniaEdit\src\AvaloniaEdit.TextMate\AvaloniaEdit.TextMate.csproj" />
-      <ProjectReference Include="..\..\git_public\AvaloniaEdit\src\AvaloniaEdit\AvaloniaEdit.csproj" />
+      <Compile Update="Views\BlitzFileTab.axaml.cs">
+        <DependentUpon>BlitzFileTab.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\BlitzFileView.axaml.cs">
+        <DependentUpon>BlitzFileView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
+
+
 </Project>
