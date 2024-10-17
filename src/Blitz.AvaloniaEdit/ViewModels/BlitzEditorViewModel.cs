@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.ObjectModel;
+using Avalonia.Dialogs.Internal;
 using AvaloniaEdit.TextMate;
 using Avalonia.Media;
 using Blitz.AvaloniaEdit.Models;
@@ -18,9 +19,10 @@ public class BlitzEditorViewModel : ViewModelBase
     private TextMate.Installation? _textMateInstallation;
     private IBrush? _statusBarForeground;
     private IBrush? _statusBarBackground;
-    private IBrush? _titleBarBackground;
+    private IBrush? _titleBarBackground = Brushes.Sienna;
     private IBrush? _textForeground;
-    
+    private string? _searchThisPreviewText;
+
     public InstallationInstallerDelegate? TextMateInstaller { get; set; }
     public delegate TextMate.Installation InstallationInstallerDelegate(RegistryOptions options);
     public Action<TextMate.Installation>? BackGroundForeGroundUpdate;
@@ -56,6 +58,67 @@ public class BlitzEditorViewModel : ViewModelBase
         get => _selectedFiles;
         set => this.RaiseAndSetIfChanged(ref _selectedFiles, value);
     }
+
+    /// <summary>
+    /// Gets the current opened file, if one isn't in the collection a new one 
+    /// </summary>
+    /// <param name="fileName"></param>
+    /// <param name="openInPreview"></param>
+    /// <param name="lineNumber"></param>
+    /// <param name="columnNumber"></param>
+    /// <returns></returns>
+    public BlitzDocument GetOpenedOrCreateFile(string fileName, bool openInPreview = false, int lineNumber = 1, int columnNumber = 1)
+    {
+        int afterSelectedIndex = 0;
+        if (SelectedFiles.FirstOrDefault() is BlitzDocument selected)
+        {
+            afterSelectedIndex = OpenedFiles.IndexOf(selected) + 1;
+        }
+
+        foreach (var item in OpenedFiles.OfType<BlitzDocument>())
+        {
+            var isRequestedFile = item.FileNameOrTitle == fileName;
+            if (openInPreview && item.IsPreviewing && !isRequestedFile)
+            {
+                var index = OpenedFiles.IndexOf(item);
+                OpenedFiles.Remove(item);
+                var updatedPreview = new BlitzDocument(BlitzDocument.DocumentType.File, fileName){AlignViewLine = lineNumber, AlignViewColumn = columnNumber, IsPreviewing = openInPreview};
+                OpenedFiles.Insert(index, updatedPreview);
+                SelectDocument(updatedPreview);
+                return updatedPreview;
+            }
+            
+            if (item.Type != BlitzDocument.DocumentType.File
+                || !isRequestedFile)
+            {
+                continue;
+            }
+            item.AlignViewLine = lineNumber;
+            item.AlignViewColumn = columnNumber;
+            SelectDocument(item);
+            return item;
+        }
+
+        
+        var returnDocument = new BlitzDocument(BlitzDocument.DocumentType.File, fileName){AlignViewLine = lineNumber, AlignViewColumn = columnNumber, IsPreviewing = openInPreview};
+        OpenedFiles.Insert(afterSelectedIndex, returnDocument);
+        SelectDocument(returnDocument);
+        return returnDocument;
+    }
+
+    private void SelectDocument(BlitzDocument document)
+    {
+        SelectedFiles.Clear();
+        SelectedFiles.Add(document);
+    }
+    
+    
+    public string? SearchThisPreviewText
+    {
+        get => _searchThisPreviewText;
+        set => this.RaiseAndSetIfChanged(ref _searchThisPreviewText,value); 
+    }
+
 
     /// <summary>
     /// Request Line when setting selection, this will goto, once the file is loaded.
@@ -98,21 +161,15 @@ public class BlitzEditorViewModel : ViewModelBase
     }
 
     private RegistryOptions? _textMateRegistryOptions;
+    private FontFamily _selectedFontFamily;
 
+    public ThemeName ConfiguredThemeName { get; set; } = ThemeName.DarkPlus;
     public RegistryOptions TextMateRegistryOptions
     {
         get
         {
             if (_textMateRegistryOptions != null) return _textMateRegistryOptions;
-                
-            //todo: Configuration
-            // string themeString = Configuration.Theme.ThemeName;
-            // if (!Enum.TryParse(themeString, out ThemeName themeName))
-            // {
-                var themeName = ThemeName.DarkPlus;
-            // }
-            var options =  new RegistryOptions(themeName);
-            
+            var options =  new RegistryOptions(ConfiguredThemeName);
             return options;
            
         }
@@ -177,6 +234,12 @@ public class BlitzEditorViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _textForeground, value);
     }
 
+    public FontFamily SelectedFontFamily
+    {
+        get => _selectedFontFamily ?? FontFamily.Default;
+        set => this.RaiseAndSetIfChanged(ref _selectedFontFamily, value);
+    }
+
     private void TextMateInstallationOnAppliedTheme(object? sender, TextMate.Installation e)
     {
         if (!ApplyBrushAction(e,"statusBar.background", brush => StatusBarBackground = brush))
@@ -217,7 +280,6 @@ public class BlitzEditorViewModel : ViewModelBase
             ThemeName = themeName.ToString()
         };
     }
-
     
     public void UpdateRegistryOptions() => this.RaisePropertyChanged(nameof(TextMateRegistryOptions));
 
@@ -226,8 +288,4 @@ public class BlitzEditorViewModel : ViewModelBase
         TextMateRegistryOptions = new RegistryOptions(_blitzThemeViewModel!.ThemeName);
         this.RaisePropertyChanged(nameof(ThemeViewModel));
     }
-
-
-
-
 }

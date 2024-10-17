@@ -53,39 +53,18 @@ public partial class MainWindow : Window
 
         foreach (var file in files)
         {
-            
-            
+            OpenFile(file.Path.AbsolutePath, 1, 1);
         }
     }
 
-    public async void OpenFile(string path, int line, int column)
+    public void OpenFile(string path, int line, int column)
     {
-        if (DataContext is not MainWindowViewModel mainWindowViewModel) return;
-
-        BlitzDocument? fileInfo = null;
-
-        foreach (var info in mainWindowViewModel.EditorViewModel.OpenedFiles)
+        if (DataContext is not MainWindowViewModel mainWindowViewModel)
         {
-            if (string.Equals(info.FileNameOrTitle,path, StringComparison.OrdinalIgnoreCase))
-            {
-                fileInfo = info;
-                break;
-            }
+            return;
         }
 
-        var collection = mainWindowViewModel.EditorViewModel.SelectedFiles;
-        mainWindowViewModel.EditorViewModel.SelectedFiles.Clear();
-        if (fileInfo == null)
-        {
-            fileInfo = new BlitzDocument(BlitzDocument.DocumentType.File, path);
-            mainWindowViewModel.EditorViewModel.OpenedFiles.Add(fileInfo);
-        }
-
-        fileInfo.AlignViewLine = line;
-        fileInfo.AlignViewColumn = line;
-        
-        mainWindowViewModel.EditorViewModel.SelectedFiles.Add(fileInfo);
-        
+        mainWindowViewModel.EditorViewModel.GetOpenedOrCreateFile(path, false, line, column);
     }
 
 

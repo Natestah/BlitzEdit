@@ -8,12 +8,17 @@
              x:DataType="viewModels:BlitzEditorViewModel"
              xmlns:AvalonEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
              >
-    <AvalonEdit:TextEditor Name="AvaloniaTextEditor"
-                           FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+    <AvalonEdit:TextEditor x:Name="AvaloniaTextEditor"
+                           IsTabStop="False"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Stretch"
+                           CornerRadius="0"
+                           WordWrap="False"
+                           IsReadOnly="True"
+                           ShowLineNumbers="True"
+                           FontFamily="{Binding SelectedFontFamily}"
                            HorizontalScrollBarVisibility="Auto"
                            VerticalScrollBarVisibility="Visible"
-                           FontWeight="Light"
-                           FontSize="14" />
-    
+                            />
     
 </UserControl>

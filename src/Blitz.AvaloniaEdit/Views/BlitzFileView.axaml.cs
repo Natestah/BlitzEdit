@@ -7,8 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.TextMate;
 using Blitz.AvaloniaEdit.ViewModels;
@@ -23,6 +25,8 @@ public partial class BlitzFileView : UserControl
     private CancellationTokenSource? _currentToken = null;
     private BlitzDocument? _currentDocument = null;
 
+    public TextEditor TextEditor => AvaloniaTextEditor;
+    
     public BlitzFileView()
     {
         InitializeComponent();
@@ -42,7 +46,32 @@ public partial class BlitzFileView : UserControl
         editorViewModel.UpdateRegistryOptions();
         editorViewModel.PropertyChanged+=EditorViewModelOnPropertyChanged;
         editorViewModel.SelectedFiles.CollectionChanged += (o, args) => UpdateViewToSelection();
+        AvaloniaTextEditor.TextChanged+=AvaloniaTextEditorOnTextChanged;
     }
+
+    public void SaveCurrentDocument()
+    {
+        if (_currentDocument is not { IsDirty: true, Type:BlitzDocument.DocumentType.File } ) return;
+
+        try
+        {
+            File.WriteAllText(_currentDocument.FileNameOrTitle, AvaloniaTextEditor.Text);
+            _currentDocument.IsDirty = false;
+        }
+        catch (Exception e)
+        {
+            //todo: need a message box window to show problems..
+        }
+    }
+
+    private void AvaloniaTextEditorOnTextChanged(object? sender, EventArgs e)
+    {
+        if (_currentDocument != null)
+        {
+            _currentDocument.IsDirty = true;
+        }
+    }
+
 
     private async void UpdateViewToSelection()
     {
@@ -58,9 +87,8 @@ public partial class BlitzFileView : UserControl
         
            await ScrollToPosition(blitzDocument.AlignViewLine, blitzDocument.AlignViewColumn);
         }
-        
     }
-
+    
     private void EditorViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(BlitzEditorViewModel.SelectedFiles))
@@ -75,7 +103,10 @@ public partial class BlitzFileView : UserControl
         
 
         //It's already the active in view.
-        if (_currentDocument == file) return;
+        if (_currentDocument == file)
+        {
+            return;
+        }
         if (_currentToken != null)
         {
             await _currentToken.CancelAsync();
@@ -106,6 +137,10 @@ public partial class BlitzFileView : UserControl
             } while (DateTime.Now - startTime < TimeSpan.FromSeconds(1));
             
         }
+        else if (file.Type == BlitzDocument.DocumentType.Untitled)
+        {
+            filePreviewText = file.DirtyText;
+        }
         else
         {
             filePreviewText = "";
@@ -120,10 +155,19 @@ public partial class BlitzFileView : UserControl
 
 
         AvaloniaTextEditor.Document = new TextDocument(filePreviewText) ;
+        _currentDocument.IsDirty = false;
     }
     private TextMate.Installation InstallTextMate(RegistryOptions options) => AvaloniaTextEditor.InstallTextMate(options);
 
 
+    public async void ScrollToLineColumn(BlitzDocument document)
+    {
+        if (_currentDocument == document)
+        {
+            await ScrollToPosition(document.AlignViewLine, document.AlignViewColumn);
+        }
+    }
+    
     private async Task ScrollToPosition( int lineNumer, int column)
     {
         //Todo: I don't like this, Maybe we can work it into AvaloniaEdit itself "Load a document and center it on this line when things are finished"
