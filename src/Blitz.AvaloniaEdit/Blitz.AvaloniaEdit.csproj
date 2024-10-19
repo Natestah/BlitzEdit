@@ -5,6 +5,14 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Title>Blitz.AvaloniaEdit</Title>
+        <Description>Managing FileTabs and Document states for AvaloniaEdit</Description>
+        <Copyright>2024 Nathan Silvers</Copyright>
+        <PackageProjectUrl>https://natestah.com</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Natestah/BlitzEdit</RepositoryUrl>
+        <PackageReadmeFile>readme.md</PackageReadmeFile>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 
     <ItemGroup>
@@ -36,6 +44,8 @@
         <DependentUpon>BlitzFileView.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+        <None Include="..\..\readme.md" Pack="true" PackagePath="\"/>
+
     </ItemGroup>
 
 
