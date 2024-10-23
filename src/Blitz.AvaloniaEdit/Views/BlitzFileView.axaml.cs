@@ -17,6 +17,7 @@ using Blitz.AvaloniaEdit.ViewModels;
 using DynamicData.Binding;
 using ReactiveUI;
 using TextMateSharp.Grammars;
+using TextMateSharp.Registry;
 
 namespace Blitz.AvaloniaEdit.Views;
 
@@ -41,9 +42,7 @@ public partial class BlitzFileView : UserControl
             return;
         }
 
-        editorViewModel.TextMateInstaller = InstallTextMate;
         editorViewModel.PopulateThemeModels();
-        editorViewModel.UpdateRegistryOptions();
         editorViewModel.PropertyChanged+=EditorViewModelOnPropertyChanged;
         editorViewModel.SelectedFiles.CollectionChanged += (o, args) => UpdateViewToSelection();
         AvaloniaTextEditor.TextChanged+=AvaloniaTextEditorOnTextChanged;
@@ -82,7 +81,7 @@ public partial class BlitzFileView : UserControl
         if (editorViewModel.SelectedFiles.FirstOrDefault() is BlitzDocument blitzDocument)
         {
            await AddFileToView(blitzDocument);
-           
+
            //Todo: Scroll to specific offset, instead of caret position line
         
            await ScrollToPosition(blitzDocument.AlignViewLine, blitzDocument.AlignViewColumn);
@@ -91,9 +90,14 @@ public partial class BlitzFileView : UserControl
     
     private void EditorViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(BlitzEditorViewModel.SelectedFiles))
+        switch (e.PropertyName)
         {
-            UpdateViewToSelection();
+            case nameof(BlitzEditorViewModel.ThemeViewModel):
+                ReApplyTheme();
+                break;
+            case nameof(BlitzEditorViewModel.SelectedFiles):
+                UpdateViewToSelection();
+                break;
         }
     }
 
@@ -107,11 +111,16 @@ public partial class BlitzFileView : UserControl
         {
             return;
         }
+        
         if (_currentToken != null)
         {
             await _currentToken.CancelAsync();
         }
         _currentToken = new CancellationTokenSource();
+        
+        bool needsTextMateInstallation = !(_currentDocument is { Type: BlitzDocument.DocumentType.File } &&
+                                           file.Type == BlitzDocument.DocumentType.File && file.Extension == _currentDocument.Extension);
+        
         _currentDocument = file;
         string? filePreviewText = null;
 
@@ -145,19 +154,56 @@ public partial class BlitzFileView : UserControl
         {
             filePreviewText = "";
         }
-        var language =  editorViewModel.TextMateRegistryOptions.GetLanguageByExtension(file.Extension) 
-                        ?? editorViewModel.TextMateRegistryOptions.GetAvailableLanguages().FirstOrDefault();
-        if (language == null)
-        {
-            throw new NullReferenceException();
-        }
-        editorViewModel.TextMateInstallation?.SetGrammar(editorViewModel.TextMateRegistryOptions.GetScopeByLanguageId(language.Id));
-
 
         AvaloniaTextEditor.Document = new TextDocument(filePreviewText) ;
+
+        if (needsTextMateInstallation)
+        {
+            ReApplyTheme();
+        }
         _currentDocument.IsDirty = false;
     }
-    private TextMate.Installation InstallTextMate(RegistryOptions options) => AvaloniaTextEditor.InstallTextMate(options);
+
+    public async void ReApplyTheme()
+    {
+        if (DataContext is not BlitzEditorViewModel editorViewModel) return;
+
+        if (editorViewModel.ThemeViewModel != null)
+        {
+            var baseOptions = editorViewModel.ThemeViewModel.RegistryOptions.BaseOptions;
+            var file = editorViewModel.SelectedFiles.FirstOrDefault() as BlitzDocument;
+            
+            string extension = file?.Extension ?? ".txt";
+            
+            var language =  baseOptions.GetLanguageByExtension(extension) 
+                            ?? baseOptions.GetAvailableLanguages().FirstOrDefault();
+            if (language == null)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (editorViewModel.TextMateInstallation != null)
+            {
+                editorViewModel.TextMateInstallation.AppliedTheme -= editorViewModel.TextMateInstallationOnAppliedTheme;
+                editorViewModel.TextMateInstallation.Dispose();
+            }
+
+            var newInstallation = AvaloniaTextEditor.InstallTextMate(editorViewModel.ThemeViewModel.RegistryOptions);
+            newInstallation.AppliedTheme += editorViewModel.TextMateInstallationOnAppliedTheme;
+            editorViewModel.TextMateInstallation = newInstallation;
+            editorViewModel.TextMateInstallationOnAppliedTheme(this,newInstallation);
+
+            editorViewModel.TextMateInstallation?.SetGrammar(
+                editorViewModel.ThemeViewModel.RegistryOptions.BaseOptions.GetScopeByLanguageId(language.Id));
+        }
+
+        await Task.Delay(0);
+        AvaloniaTextEditor.TextArea.TextView.Redraw();
+        AvaloniaTextEditor.InvalidateArrange();
+    }
+    
+    
+    private TextMate.Installation InstallTextMate(IRegistryOptions options) => AvaloniaTextEditor.InstallTextMate(options);
 
 
     public async void ScrollToLineColumn(BlitzDocument document)

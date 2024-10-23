@@ -13,6 +13,8 @@
         <RepositoryUrl>https://github.com/Natestah/BlitzEdit</RepositoryUrl>
         <PackageReadmeFile>readme.md</PackageReadmeFile>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Version>1.0.1</Version>
+        <PackageReleaseNotes>Support for Themes from Files</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>

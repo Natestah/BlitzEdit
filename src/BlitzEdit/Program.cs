@@ -51,9 +51,6 @@ sealed class Program
         {
             GlobalExceptionReport(e);
         }
-        
-        BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
     }
 
     private static void CurrentDomainOnUnhandledException(object sender, UnhandledExceptionEventArgs e)

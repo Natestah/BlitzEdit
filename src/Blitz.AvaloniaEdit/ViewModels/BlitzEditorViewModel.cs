@@ -7,6 +7,7 @@ using Avalonia.Media;
 using Blitz.AvaloniaEdit.Models;
 using TextMateSharp.Grammars;
 using ReactiveUI;
+using TextMateSharp.Registry;
 
 namespace Blitz.AvaloniaEdit.ViewModels;
 
@@ -23,8 +24,6 @@ public class BlitzEditorViewModel : ViewModelBase
     private IBrush? _textForeground;
     private string? _searchThisPreviewText;
 
-    public InstallationInstallerDelegate? TextMateInstaller { get; set; }
-    public delegate TextMate.Installation InstallationInstallerDelegate(RegistryOptions options);
     public Action<TextMate.Installation>? BackGroundForeGroundUpdate;
 
     private ThemeViewModel _blitzThemeViewModel;
@@ -35,12 +34,16 @@ public class BlitzEditorViewModel : ViewModelBase
         {
             if (value == null)
                 return;
-            
+
             //Todo: Configuration
             //Configuration.Instance.CurrentTheme = value.Theme;
             
+            if (!AllThemeViewModels.Contains(value))
+            {
+                AllThemeViewModels.Add(value);
+            }
             _blitzThemeViewModel = value;
-            UpdateTheme();
+            this.RaisePropertyChanged();
         }
     }
     private ObservableCollection<object> _selectedFiles = [];
@@ -133,25 +136,20 @@ public class BlitzEditorViewModel : ViewModelBase
     
     public ObservableCollection<ThemeViewModel> AllThemeViewModels { get; } = [];
 
+    private bool _populated = false;
     public void PopulateThemeModels()
     {
+        if (_populated)
+        {
+            return;
+        }
+        _populated = true;
         foreach (ThemeName themeName in Enum.GetValuesAsUnderlyingType(typeof(TextMateSharp.Grammars.ThemeName)))
         {
             var newBlitzTHeme = themeName.ToString().ToLower().Contains("light") ? FromBase(BlitzTheme.Light, themeName) : FromBase(BlitzTheme.Dark, themeName);
-            AllThemeViewModels.Add( new ThemeViewModel(this, newBlitzTHeme));
+            AllThemeViewModels.Add( new ThemeViewModel(newBlitzTHeme));
         }
-
-        // Todo: Configuration..
-        // foreach (var themeViewModel in AllThemeViewModels)
-        // {
-        //     if ( themeViewModel.Theme.ThemeName == Configuration.Instance.SelectedThemePremium)
-        //     {
-        //         this.ThemeViewModel = themeViewModel;
-        //         return;
-        //     }
-        // }
-
-        this.ThemeViewModel = AllThemeViewModels.FirstOrDefault(model => model.ThemeName == ThemeName.Monokai);
+        //this.ThemeViewModel = AllThemeViewModels.FirstOrDefault(model => model.ThemeName == ThemeName.Monokai);
     }
     
     public TextMate.Installation? TextMateInstallation
@@ -160,40 +158,8 @@ public class BlitzEditorViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _textMateInstallation, value);
     }
 
-    private RegistryOptions? _textMateRegistryOptions;
     private FontFamily _selectedFontFamily;
 
-    public ThemeName ConfiguredThemeName { get; set; } = ThemeName.DarkPlus;
-    public RegistryOptions TextMateRegistryOptions
-    {
-        get
-        {
-            if (_textMateRegistryOptions != null) return _textMateRegistryOptions;
-            var options =  new RegistryOptions(ConfiguredThemeName);
-            return options;
-           
-        }
-        set
-        {
-            _textMateRegistryOptions = value;
-            if (TextMateInstallation != null)
-            {
-                TextMateInstallation.AppliedTheme -= TextMateInstallationOnAppliedTheme;
-                TextMateInstallation.Dispose();
-            }
-
-            if (TextMateInstaller != null)
-            {
-                var newInstallation = TextMateInstaller.Invoke(value);
-                newInstallation.AppliedTheme += TextMateInstallationOnAppliedTheme;
-                TextMateInstallation = newInstallation;
-            
-                this.RaiseAndSetIfChanged(ref _textMateRegistryOptions, value);
-                TextMateInstallationOnAppliedTheme(this, newInstallation);
-            }
-        }
-    }
-    
     
     
     bool ApplyBrushAction(TextMate.Installation e, string colorKeyNameFromJson, Action<IBrush> applyColorAction)
@@ -240,7 +206,7 @@ public class BlitzEditorViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedFontFamily, value);
     }
 
-    private void TextMateInstallationOnAppliedTheme(object? sender, TextMate.Installation e)
+    public void TextMateInstallationOnAppliedTheme(object? sender, TextMate.Installation e)
     {
         if (!ApplyBrushAction(e,"statusBar.background", brush => StatusBarBackground = brush))
         {
@@ -264,7 +230,11 @@ public class BlitzEditorViewModel : ViewModelBase
     }
 
 
-    private BlitzTheme FromBase(BlitzTheme baseTheme,ThemeName themeName)
+    public BlitzTheme FromBase(BlitzTheme baseTheme,ThemeName themeName)
+    {
+        return FromBase(baseTheme, themeName.ToString());
+    }
+    public BlitzTheme FromBase(BlitzTheme baseTheme,string themeName)
     {
         return new BlitzTheme
         {
@@ -280,12 +250,5 @@ public class BlitzEditorViewModel : ViewModelBase
             ThemeName = themeName.ToString()
         };
     }
-    
-    public void UpdateRegistryOptions() => this.RaisePropertyChanged(nameof(TextMateRegistryOptions));
 
-    public void UpdateTheme()
-    {
-        TextMateRegistryOptions = new RegistryOptions(_blitzThemeViewModel!.ThemeName);
-        this.RaisePropertyChanged(nameof(ThemeViewModel));
-    }
 }

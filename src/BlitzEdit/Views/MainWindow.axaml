@@ -28,10 +28,16 @@
                 <MenuItem Header="Copy"/>
                 <MenuItem Header="Paste"/>
             </MenuItem>
+            <MenuItem Header="ThemeTest">
+                <MenuItem Header="Import" Click="ThemeImportMenuItem_OnClick"/>
+                <MenuItem Header="Monokai" CommandParameter="Monokai" Click="ThemeBuiltInMenuItem_OnClick"/>
+                <MenuItem Header="DarkPlus" CommandParameter="DarkPlus"  Click="ThemeBuiltInMenuItem_OnClick"/>
+                <MenuItem Header="SolarizedLight" CommandParameter="SolarizedLight"  Click="ThemeBuiltInMenuItem_OnClick"/>
+            </MenuItem>
         </Menu>
         
         <views:BlitzFileTab DockPanel.Dock="Top"/>
-        <views:BlitzFileView DockPanel.Dock="Top" />
+        <views:BlitzFileView x:Name="FileView" DockPanel.Dock="Top" />
         
     </DockPanel>
 
